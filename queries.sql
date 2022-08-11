@@ -70,7 +70,6 @@ BEGIN;
 UPDATE animals
 SET species = 'pokemon'
 WHERE species IS NULL;
-
 -- Commit the transaction
 COMMIT;
 
@@ -87,7 +86,7 @@ DELETE FROM animals;
 ROLLBACK TO sp1;
 -- Verify that the table is not empty
 COMMIT; /*END TRANSACTION*/
-SELECT * FROM animals;
+SELECT * FROM owners;
 
 
 -- NEW TRANSACTION
@@ -130,3 +129,231 @@ FROM animals
 WHERE date_of_birth 
 BETWEEN '01/01/1990' AND '31/12/2000'
 GROUP BY species;
+
+
+
+-- Answer some questions using JOIN.
+-- 1. What animals belong to Melody Pond? 
+SELECT
+    name
+FROM
+    animals
+    JOIN owners ON animals.owner_id = owners.id
+WHERE
+    owners.full_name = 'Melody Pond';
+
+-- => Squirtle, Charmander, Blossom.
+-- 2. List of all animals that are pokemon.
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN species ON animals.species_id = species.id
+WHERE
+    species.name = 'Pokemon';
+
+-- => Ditto, Pikachu, Blossom, Charmander, Squirtle
+-- 3. List all owners and their animals.
+SELECT
+    owners.full_name,
+    animals.name
+FROM
+    owners
+    LEFT JOIN animals ON owners.id = animals.owner_id;
+
+-- 4. How many animals are there per species?
+SELECT
+    species.name AS Specie_name,
+    COUNT(animals.name) as Number_of_animals
+FROM
+    species
+    JOIN animals ON species.id = animals.species_id
+GROUP BY
+    Specie_name;
+
+--=>specie_name | number_of_animals
+-- -------------+-------------------
+--  Pokemon     |                 5
+--  Digimon     |                 6
+-- (2 lignes)
+-- 5. List all Digimon owned by jennifer Orwell.
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN owners ON animals.owner_id = owners.id
+WHERE
+    owners.full_name = 'Jennifer Orwell';
+
+-- =>  Pikachu, Gabumon
+-- 6. List all animals owned by Dean Wincheste that haven't tried to escape.
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN owners ON animals.owner_id = owners.id
+WHERE
+    owners.full_name = 'Dean Wincheste'
+    AND animals.escape_attempts = 0;
+
+-- => 0;
+-- 7. Who owns the most animals?   
+SELECT
+    owners.full_name as owner_full_name,
+    COUNT(animals.name) AS Number_of_animals
+FROM
+    owners
+    LEFT JOIN animals ON owners.id = animals.owner_id
+GROUP BY
+    owner_full_name
+ORDER BY
+    Number_of_animals DESC;
+
+--=>Melody Pond
+
+-----Write queries to answer the following:
+--1 Who was the last animal seen by William Tatcher?
+-- => Blossom
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'William Tatcker'
+    AND visits.date_of_visit = (
+        SELECT
+            MAX(visits.date_of_visit)
+        FROM
+            visits
+            JOIN vets ON vets.id = visits.vet_id
+        WHERE
+            vets.name = 'William Tatcher'
+    );
+
+
+-- 2. How many different animals did Stephanie Mendez see?
+-- => 4;
+SELECT
+    DISTINCT COUNT(animals.name)
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'Stephanie Mendez';
+
+
+-- 3. List all vets and their specialties, including vets with no specialties.
+
+SELECT
+    vets.name,
+    species.name
+FROM
+    vets
+    LEFT JOIN specialization ON vets.id = specialization.vet_id
+    LEFT JOIN species ON species.id = specialization.species_id
+ORDER BY
+    vets.id;
+
+
+--4 List all animals that visited Stephanie Mendez between April 1st and August 30th, 2020.
+-- => Agumon and Blossom
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'Stephanie Mendez'
+    AND visits.date_of_visit BETWEEN '01/04/2020'
+    AND '30/08/2020';
+
+    -- 5. What animal has the most visits to vets?
+-- => Boarmon
+SELECT
+    animals.name,
+    COUNT(animals.name) AS total_visits
+FROM
+    animals
+    LEFT JOIN visits ON animals.id = visits.animal_id
+GROUP BY
+    animals.name
+ORDER BY
+    total_visits DESC;
+
+    -- 6. Who was Maisy Smith's first visit?
+-- => Boarmon
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'Maisy Smith'
+    AND visits.date_of_visit = (
+        SELECT
+            MIN(visits.date_of_visit)
+        FROM
+            visits
+            JOIN vets ON vets.id = visits.vet_id
+        WHERE
+            vets.name = 'Maisy Smith'
+    );
+
+
+-- 7. Details for most recent visit: animal information, vet information, and date of visit.
+
+    animals.name as "Anmal's_name",
+    animals.date_of_birth as date_of_birth_of_animal,
+    vets.name as Vet_name,
+    species.name as Species,
+    visits.date_of_visit as Date_of_visit
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+    JOIN species on species.id = animals.species_id
+WHERE
+    Date_of_visit = (
+        SELECT
+            MAX(Date_of_visit)
+        FROM
+            visits
+            JOIN vets ON vets.id = visits.vet_id
+    );
+
+    
+-- 8. How many visits were with a vet that did not specialize in that animal's species?
+-- => 9;
+SELECT
+    count(vets.name)
+FROM
+    vets FULL
+    JOIN specialization ON specialization.vet_id = vets.id FULL
+    JOIN visits ON visits.vet_id = vets.id
+where
+    specialization.vet_id is null;
+
+-- 9. What specialty should Maisy Smith consider getting? Look for the species she gets the most.
+-- => Digimon
+SELECT
+    species.name AS "Species name",
+    COUNT(*)
+FROM
+    animals
+    JOIN visits on visits.animal_id = animals.id
+    JOIN vets on vets.id = visits.vet_id
+    JOIN species on species.id = animals.species_id
+WHERE
+    vets.name = 'Maisy Smith'
+GROUP by
+    species.name
+ORDER BY
+    count DESC
+lIMIT
+    1;
+
