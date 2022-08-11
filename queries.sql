@@ -211,5 +211,149 @@ ORDER BY
 
 --=>Melody Pond
 
+-----Write queries to answer the following:
+--1 Who was the last animal seen by William Tatcher?
+-- => Blossom
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'William Tatcker'
+    AND visits.date_of_visit = (
+        SELECT
+            MAX(visits.date_of_visit)
+        FROM
+            visits
+            JOIN vets ON vets.id = visits.vet_id
+        WHERE
+            vets.name = 'William Tatcher'
+    );
 
+
+-- 2. How many different animals did Stephanie Mendez see?
+-- => 4;
+SELECT
+    DISTINCT COUNT(animals.name)
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'Stephanie Mendez';
+
+
+-- 3. List all vets and their specialties, including vets with no specialties.
+
+SELECT
+    vets.name,
+    species.name
+FROM
+    vets
+    LEFT JOIN specialization ON vets.id = specialization.vet_id
+    LEFT JOIN species ON species.id = specialization.species_id
+ORDER BY
+    vets.id;
+
+
+--4 List all animals that visited Stephanie Mendez between April 1st and August 30th, 2020.
+-- => Agumon and Blossom
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'Stephanie Mendez'
+    AND visits.date_of_visit BETWEEN '01/04/2020'
+    AND '30/08/2020';
+
+    -- 5. What animal has the most visits to vets?
+-- => Boarmon
+SELECT
+    animals.name,
+    COUNT(animals.name) AS total_visits
+FROM
+    animals
+    LEFT JOIN visits ON animals.id = visits.animal_id
+GROUP BY
+    animals.name
+ORDER BY
+    total_visits DESC;
+
+    -- 6. Who was Maisy Smith's first visit?
+-- => Boarmon
+SELECT
+    animals.name
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+WHERE
+    vets.name = 'Maisy Smith'
+    AND visits.date_of_visit = (
+        SELECT
+            MIN(visits.date_of_visit)
+        FROM
+            visits
+            JOIN vets ON vets.id = visits.vet_id
+        WHERE
+            vets.name = 'Maisy Smith'
+    );
+
+
+-- 7. Details for most recent visit: animal information, vet information, and date of visit.
+
+    animals.name as "Anmal's_name",
+    animals.date_of_birth as date_of_birth_of_animal,
+    vets.name as Vet_name,
+    species.name as Species,
+    visits.date_of_visit as Date_of_visit
+FROM
+    animals
+    JOIN visits ON animals.id = visits.animal_id
+    JOIN vets ON vets.id = visits.vet_id
+    JOIN species on species.id = animals.species_id
+WHERE
+    Date_of_visit = (
+        SELECT
+            MAX(Date_of_visit)
+        FROM
+            visits
+            JOIN vets ON vets.id = visits.vet_id
+    );
+
+    
+-- 8. How many visits were with a vet that did not specialize in that animal's species?
+-- => 9;
+SELECT
+    count(vets.name)
+FROM
+    vets FULL
+    JOIN specialization ON specialization.vet_id = vets.id FULL
+    JOIN visits ON visits.vet_id = vets.id
+where
+    specialization.vet_id is null;
+
+-- 9. What specialty should Maisy Smith consider getting? Look for the species she gets the most.
+-- => Digimon
+SELECT
+    species.name AS "Species name",
+    COUNT(*)
+FROM
+    animals
+    JOIN visits on visits.animal_id = animals.id
+    JOIN vets on vets.id = visits.vet_id
+    JOIN species on species.id = animals.species_id
+WHERE
+    vets.name = 'Maisy Smith'
+GROUP by
+    species.name
+ORDER BY
+    count DESC
+lIMIT
+    1;
 
