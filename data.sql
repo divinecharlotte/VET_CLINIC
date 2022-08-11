@@ -108,9 +108,10 @@ VALUES
      ('Stephanie Mendez',64,'1981/05/04'),
      ('Jack Harkness',38,'2008/06/08');
 
+select * from visits;
      -- Insert new data into specialization table.
 INSERT INTO specialization (species_id, vet_id) 
-VALUES (1,1),(1,3),(2,4);
+VALUES (1,1),(1,3),(2,3),(2,4);
 
 -- Insert data into the visits table.
 INSERT INTO visits (animal_id, vet_id, date_of_visit)

@@ -42,7 +42,7 @@ ALTER TABLE animals ADD COLUMN species_id INT REFERENCES species(id);
 ALTER TABLE animals ADD COLUMN owner_id INT REFERENCES owners(id);
 
 --- create vets table
-
+DROP TABLE vets;
 CREATE TABLE vets(
     id INT GENERATED ALWAYS AS IDENTITY,
     name VARCHAR,
@@ -52,14 +52,14 @@ CREATE TABLE vets(
 );
 
 -- Create a join table to store species and vets.
-
+DROP TABLE specialization;
 CREATE TABLE specialization(
     species_id INT REFERENCES species(id),
     vet_id INT REFERENCES vets(id)
 );
 
 -- Create a join table to store animals and vets.
-
+DROP TABLE visits;
 CREATE TABLE visits(
     animal_id INT REFERENCES animals(id),
     vet_id INT REFERENCES vets(id),
