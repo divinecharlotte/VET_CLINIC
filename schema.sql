@@ -15,10 +15,11 @@ ALTER TABLE animals ADD COLUMN species varchar;
 CREATE TABLE owners(
     id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
     full_name VARCHAR NOT NULL,
-    age INT NOT NULL,
+    age INT,
     PRIMARY KEY (id)
 );
 
+ALTER TABLE owners ALTER column age SET DATA TYPE INT;
 -- Create a table to store species.
 CREATE TABLE species(
     id INT GENERATED ALWAYS AS IDENTITY NOT NULL,
@@ -42,7 +43,6 @@ ALTER TABLE animals ADD COLUMN species_id INT REFERENCES species(id);
 ALTER TABLE animals ADD COLUMN owner_id INT REFERENCES owners(id);
 
 --- create vets table
-DROP TABLE vets;
 CREATE TABLE vets(
     id INT GENERATED ALWAYS AS IDENTITY,
     name VARCHAR,
@@ -52,16 +52,17 @@ CREATE TABLE vets(
 );
 
 -- Create a join table to store species and vets.
-DROP TABLE specialization;
 CREATE TABLE specialization(
     species_id INT REFERENCES species(id),
     vet_id INT REFERENCES vets(id)
 );
 
 -- Create a join table to store animals and vets.
-DROP TABLE visits;
 CREATE TABLE visits(
     animal_id INT REFERENCES animals(id),
     vet_id INT REFERENCES vets(id),
     date_of_visit DATE
 );
+
+-- Add an email column to your owners table
+ALTER TABLE owners ADD COLUMN email VARCHAR(120);
